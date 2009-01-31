@@ -13,10 +13,10 @@ class Source < ActiveRecord::Base
     self.priority||=3
   end
   
-  def initadapter(credential)
+  def initadapter(credential = nil)
     #create a source adapter with methods on it if there is a source adapter class identified
-    if not self.adapter.blank?
-      @source_adapter=(Object.const_get(self.adapter)).new(self,credential)
+    unless self.adapter.blank?
+      @source_adapter=(construct_class(self.adapter)).new(self,credential)
     else # if source_adapter is nil it will
       @source_adapter=nil
     end
@@ -44,4 +44,8 @@ class Source < ActiveRecord::Base
     save
   end
 
+private
+  def construct_class(class_name)
+    class_name.split("::").inject(Object) {|scope, const_name| scope.const_get(const_name)}
+  end
 end
